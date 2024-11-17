@@ -5,14 +5,16 @@ import { images } from '../../constants';
 import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
 import { Link, router } from 'expo-router';
+import config from '../config';
+
 import { 
   CognitoUserPool,
   CognitoUserAttribute
 } from 'amazon-cognito-identity-js';
 
 const poolData = {
-  UserPoolId: process.env.EXPO_PUBLIC_COGNITO_USER_POOL_ID,
-  ClientId: process.env.EXPO_PUBLIC_COGNITO_CLIENT_ID
+  UserPoolId: config.EXPO_POOL_ID,
+  ClientId: config.EXPO_CLIENT_ID
 };
 
 const userPool = new CognitoUserPool(poolData);
