@@ -7,7 +7,6 @@ import CustomButton from '../../components/CustomButton';
 import { Link, router } from 'expo-router';
 import config from '../config';
 
-
 import { 
   CognitoUserPool,
   CognitoUser,
@@ -26,7 +25,6 @@ const SignIn = () => {
     email: "",
     password: "",
   });
-
   const [isSubmitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -60,9 +58,8 @@ const SignIn = () => {
           // Get the user's access token
           const accessToken = result.getAccessToken().getJwtToken();
           
-          // Here you might want to store the token securely
-          // and navigate to your app's main screen
-          router.push('/home'); // Adjust this route as needed
+          // Navigate to home screen
+          router.push('/home');
         },
 
         onFailure: (err) => {
@@ -78,7 +75,6 @@ const SignIn = () => {
               break;
             case 'UserNotConfirmedException':
               setError('Please verify your email first');
-              // Optionally, navigate to verification page
               router.push({
                 pathname: '/verified',
                 params: { email: form.email }
@@ -90,15 +86,39 @@ const SignIn = () => {
         },
 
         newPasswordRequired: (userAttributes, requiredAttributes) => {
-          // Handle new password required scenario
           setSubmitting(false);
           setError('You need to change your password');
-          // You might want to navigate to a password change screen
           router.push({
             pathname: '/change-password',
             params: { email: form.email }
           });
-        }
+        },
+
+        // Add MFA handling
+        mfaRequired: (challengeName, challengeParameters) => {
+          setSubmitting(false);
+          // Store cognitoUser in state or context if needed for MFA verification
+          router.push({
+            pathname: '/home',
+            params: { 
+              email: form.email,
+              challengeName,
+              ...challengeParameters
+            }
+          });
+        },
+
+        mfaSetup: (challengeName, challengeParameters) => {
+          setSubmitting(false);
+          router.push({
+            pathname: '/mfa-setup',
+            params: { 
+              email: form.email,
+              challengeName,
+              ...challengeParameters
+            }
+          });
+        },
       });
 
     } catch (err) {
