@@ -6,7 +6,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  
   // Template recipe data
   const recipes = [
     {

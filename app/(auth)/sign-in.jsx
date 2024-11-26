@@ -6,6 +6,7 @@ import FormField from '../../components/FormField';
 import CustomButton from '../../components/CustomButton';
 import { Link, router } from 'expo-router';
 import config from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { 
   CognitoUserPool,
@@ -28,6 +29,20 @@ const SignIn = () => {
   const [isSubmitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const storeUserData = async (userId, accessToken, idToken) => {
+    try {
+      await AsyncStorage.multiSet([
+        ['@user_id', userId],
+        ['@access_token', accessToken],
+        ['@id_token', idToken],
+        ['@last_login', new Date().toISOString()]
+      ]);
+    } catch (error) {
+      console.error('Error storing user data:', error);
+      throw error;
+    }
+  };
+
   const submit = async () => {
     setError("");
     if (!form.email || !form.password) {
@@ -49,15 +64,22 @@ const SignIn = () => {
         Pool: userPool
       };
       const cognitoUser = new CognitoUser(userData);
-
       cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (result) => {
+        onSuccess: async (result) => {
           setSubmitting(false);
           console.log('Authentication successful', result);
           
           // Get the user's access token
           const accessToken = result.getAccessToken().getJwtToken();
-          
+          const idToken = result.getIdToken().getJwtToken();
+
+          // Decode the ID Token to get the 'sub' claim (User ID)
+          const decodedIdToken = JSON.parse(atob(idToken.split('.')[1]));
+          const userId = decodedIdToken.sub;
+
+          // Store everything in AsyncStorage
+          await storeUserData(userId, accessToken, idToken);
+              
           // Navigate to home screen
           router.push('/home');
         },
